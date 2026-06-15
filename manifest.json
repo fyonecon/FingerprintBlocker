@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Fingerprint Blocker for Chromium",
+  "version": "1.1.3",
+  "description": "Fingerprint Blocker for Chromium. 拦截使用了Chromium内核的浏览器的设备指纹。",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "./pages/popup/popup.html",
+    "default_title": "tabPureHome"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "./common/config.js", "./common/language.js", "./common/md5.js", "./common/func.js",
+        "./content/dom_block_fingerprint.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+    "16": "./static/appicon-16.png",
+    "32": "./static/appicon-32.png",
+    "48": "./static/appicon-48.png",
+    "128": "./static/appicon-128.png"
+  },
+  "minimum_chrome_version": "132.0"
+}

@@ -1,0 +1,52 @@
+
+====================================
+
+Customize the new tab URL in the browser and How links are opened in web pages.
+自定义浏览器的新标签网址和在网页中打开链接的方式。
+
+No personal data is collected!
+不收集任何隐私！
+
+---
+
+### Running 运行:
+- Adapts to the browser's automatic theme: light/dark mode;
+- 适配了浏览器自动显示：亮/暗主题；
+- Adapts to the browser's automatic language: Simplified Chinese, English, Japanese, German;
+- 适配了浏览器自动语言：简体中文、英语、日文、德语；
+- Requires browser version v143 or higher (due to the plugin's compliance with the V3 standard).
+- 需要v143及以上的浏览器版本（这由于本插件采用的是V3标准决定的）。
+
+### Setup 设置:
+- Install this plugin from the browser's official store;
+- 从浏览器官方商店安装本插件；
+- Set your new tab URL and how links are opened in web pages; you can also use the default settings;
+- 设置你的新标签页的网址和网页中打开链接的方式，你也可以使用默认设置；
+- Every time you open an "empty new tab," it will redirect to your configured URL;
+- 每次打开“空的新标签”都会重定向到你设置好的网址；
+- Every time you click a link on a page, it will open in the way you configured ("open link in new tab" or "open link in current tab") — this does not apply to pure JavaScript redirects.
+- 每次点击页面的链接都会以你设置的“在新标签页打开链接”或“在本页面打开链接”方式打开（对纯JS跳转属性无用）。
+
+### Feedback issue 反馈问题：
+https://github.com/fyonecon/tabPureHome
+
+====================================
+
+
+
+====================================
+
+
+Store the information you set locally (specifically: the new tab URL. ).
+在本地存储你自己设置的信息（具体：新标签网址。）。
+
+Replace your new tab URL (specifically: obtain your new tab address and only replace it with the URL you set yourself. ).
+替换你的新标签网址（具体：获取你的新标签地址，只替换为你自己设置的网址。）。
+
+Modify the target attribute of the 'a' tag on the webpage (specifically: simply change the target attribute). ）.
+修改网页中的a标签的target属性（具体：只需改target属性。）。
+
+
+
+====================================
+
