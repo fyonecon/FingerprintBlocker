@@ -1,6 +1,8 @@
+# 正在开发。。。
+
 # Fingerprint Blocker for Chromium：拦截使用了Chromium内核的浏览器的设备指纹。
 
-支持浏览器：Edge、Firefox
+支持浏览器：使用了Chromium内核的浏览器，如Edge、Chrome、360极速、QQ Browser等
 
 支持的语言（自动）：中文、英语、德语、日文
 
