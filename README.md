@@ -1,6 +1,4 @@
-# 正在开发。。。
-
-# FingerprintBlocker. 拦截浏览器指纹。
+# FingerprintBlocker：Block browser fingerprint. 拦截浏览器指纹。
 
 支持浏览器：Edge/Firefox
 
@@ -46,6 +44,7 @@ tabPureHome
 │   ├───md5.js
 │   └───language.js 翻译对照表
 ├───content 注入或管理网页内容
+│   ├───dom_sync_data_bridge.js 处理读取配置信息
 │   └───dom_block_fingerprint.js 注入到每个网页内容的脚本
 ├───pages 具体页面
 │   ├───example 示例页面

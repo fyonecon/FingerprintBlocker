@@ -74,7 +74,7 @@
     align-items: center;
     gap: 10px;
     cursor: pointer;
-    padding: 10px 10px;
+    padding: 0 10px;
     border-radius: 25px;
     transition: all 0.2s ease;
     border: 1px solid rgba(160,160,160, 0.5);
@@ -85,4 +85,9 @@
     height: 18px;
     margin: 0;
     cursor: pointer;
+}
+.radio-span-click{
+    display: block;
+    padding: 10px 0;
+    min-width: 220px;
 }

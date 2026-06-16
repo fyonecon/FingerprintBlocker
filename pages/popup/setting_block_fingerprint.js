@@ -1,7 +1,6 @@
 // 设置参数
 // 设置 target mode 选中
 
-let currentRadioMode = 'off'; // 取值范围：'off' 'on'
 let block_fingerprint_alert_timer = 0;
 
 // ele
@@ -13,7 +12,6 @@ const radioAlert = document.getElementById('radioAlert');
 // 渲染选中UI
 function show_block_fingerprint_radio() {
     func.get_data("block_fingerprint_mode").then(mode => {
-        currentRadioMode = mode;
         // 更新UI选中样式
         if (mode === 'on') {
             modeBlank.checked = true;
@@ -25,12 +23,11 @@ function show_block_fingerprint_radio() {
 
 // 保存模式数据
 function set_block_fingerprint_radio_mode(mode) {
-    currentRadioMode = mode;
     //
     clearTimeout(block_fingerprint_alert_timer);
     func.set_data('block_fingerprint_mode', mode).then(mode => {
         // alert
-        block_fingerprint_alert.innerText = func.get_language("block_fingerprint_alert");
+        block_fingerprint_alert.innerText = func.get_language("radio_alert_yes");
         radioAlert.classList.remove("hide");
         block_fingerprint_alert_timer = setInterval(() => {
             block_fingerprint_alert.innerText = "";

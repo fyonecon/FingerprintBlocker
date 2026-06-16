@@ -1,11 +1,10 @@
 {
   "manifest_version": 3,
   "name": "FingerprintBlocker",
-  "version": "1.0.0",
-  "description": "FingerprintBlocker. 拦截浏览器指纹。",
+  "version": "1.0.2",
+  "description": "Block browser fingerprint. 拦截浏览器指纹。",
   "permissions": [
-    "storage",
-    "scripting"
+    "storage"
   ],
   "action": {
     "default_popup": "./pages/popup/popup.html",
@@ -16,9 +15,18 @@
       "matches": ["<all_urls>"],
       "js": [
         "./common/config.js", "./common/language.js", "./common/md5.js", "./common/func.js",
+        "./content/dom_sync_data_bridge.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": [
         "./content/dom_block_fingerprint.js"
       ],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ],
   "icons": {
@@ -35,9 +43,6 @@
       "data_collection_permissions": {
         "required": ["none"]
       }
-    },
-    "safari": {
-      "strict_min_version": "18.0"
     }
   }
 }
