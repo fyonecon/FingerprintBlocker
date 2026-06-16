@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "FingerprintBlocker",
   "version": "1.0.0",
-  "description": "FingerprintBlocker. 拦截浏览器的设备指纹。",
+  "description": "FingerprintBlocker. 拦截浏览器指纹。",
   "permissions": [
     "storage",
     "scripting"
