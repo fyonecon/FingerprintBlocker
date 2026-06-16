@@ -12,8 +12,8 @@ No personal data is collected!
 ### Running 运行:
 - Adapts to the browser's automatic language: Simplified Chinese, English, Japanese, German;
 - 适配了浏览器自动语言：简体中文、英语、日文、德语；
-- Requires browser version v132 or higher (due to the plugin's compliance with the V3 standard).
-- 需要v132及以上的浏览器版本（这由于本插件采用的是V3标准决定的）。
+- Requires browser version v143 or higher (due to the plugin's compliance with the V3 standard).
+- 需要v143及以上的浏览器版本（这由于本插件采用的是V3标准决定的）。
 
 ### Setup 设置:
 - Install this plugin from the browser's official store;
