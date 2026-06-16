@@ -7,8 +7,6 @@ Block browser fingerprint.
 No personal data is collected!
 不收集任何隐私！
 
----
-
 ### Running 运行:
 - Adapts to the browser's automatic language: Simplified Chinese, English, Japanese, German;
 - 适配了浏览器自动语言：简体中文、英语、日文、德语；
