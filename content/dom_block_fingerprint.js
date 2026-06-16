@@ -5,14 +5,14 @@
 const originals = {
     deviceMemory: Object.getOwnPropertyDescriptor(Navigator.prototype, 'deviceMemory')?.get,
     hardwareConcurrency: Object.getOwnPropertyDescriptor(Navigator.prototype, 'hardwareConcurrency')?.get,
-    // 【优化】修正获取引用的原型对象：getImageData 存在于 CanvasRenderingContext2D，而非 HTMLCanvasElement
     getImageData: window.CanvasRenderingContext2D?.prototype.getImageData,
     matchMedia: window.matchMedia,
     getBoundingClientRect: Element.prototype.getBoundingClientRect,
-    //
     offsetWidth: Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')?.get,
     offsetHeight: Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')?.get,
-    fontCheck: window.FontFaceSet?.prototype.check
+    fontCheck: window.FontFaceSet?.prototype.check,
+    RTCPeerConnection: Object.getOwnPropertyDescriptor(window, 'RTCPeerConnection'),
+    webkitRTCPeerConnection: Object.getOwnPropertyDescriptor(window, 'webkitRTCPeerConnection'),
 };
 
 // 恢复原厂设置的函数
@@ -20,9 +20,9 @@ function restore_originals() {
     if (originals.deviceMemory) {
         Object.defineProperty(Navigator.prototype, 'deviceMemory', { get: originals.deviceMemory, configurable: true });
     }
-    // if (originals.hardwareConcurrency) {
-    //     Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: originals.hardwareConcurrency, configurable: true });
-    // }
+    if (originals.hardwareConcurrency) {
+        Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: originals.hardwareConcurrency, configurable: true });
+    }
     if (originals.getImageData && window.CanvasRenderingContext2D) {
         CanvasRenderingContext2D.prototype.getImageData = originals.getImageData;
     }
@@ -39,11 +39,35 @@ function restore_originals() {
     if (originals.fontCheck && window.FontFaceSet) {
         FontFaceSet.prototype.check = originals.fontCheck;
     }
+    if (originals.RTCPeerConnection) {
+        Object.defineProperty(window, 'RTCPeerConnection', originals.RTCPeerConnection);
+    }
+    if (originals.webkitRTCPeerConnection) {
+        Object.defineProperty(window, 'webkitRTCPeerConnection', originals.webkitRTCPeerConnection);
+    }
 
+}
+
+// 一个简单的内置伪随机生成器 (SFC32)
+function createRandomGenerator(seedString) {
+    let h = 1779033703 ^ seedString.length;
+    for (let i = 0; i < seedString.length; i++) {
+        h = Math.imul(h ^ seedString.charCodeAt(i), 3432918353);
+        h = h << 13 | h >>> 19;
+    }
+    let a = (h ^ (h >>> 16)) >>> 0;
+    return function() {
+        a >>>= 0;
+        let t = (a + 0x7ED55D16) | 0;
+        a = t ^ (t << 13);
+        return ((a ^ (a >>> 15)) >>> 0) / 4294967296;
+    };
 }
 
 // 硬件特性反指纹
 function block_device_pr() {
+    let hour = (new Date()).getHours(); hour = hour===0?24:hour;
+
     // 1. deviceMemory - 直接删除
     if ('deviceMemory' in navigator) {
         Object.defineProperty(navigator, 'deviceMemory', {
@@ -53,12 +77,12 @@ function block_device_pr() {
     }
 
     // 1.5 hardwareConcurrency - 覆盖vCPU核心数
-    // if ('hardwareConcurrency' in navigator) {
-    //     Object.defineProperty(navigator, 'hardwareConcurrency', {
-    //         get: () => 8, // 4、8、16、32
-    //         configurable: true // 【优化】改为 true 允许还原
-    //     });
-    // }
+    if ('hardwareConcurrency' in navigator) {
+        Object.defineProperty(navigator, 'hardwareConcurrency', {
+            get: () => hour*2, // 4、8、16、32
+            configurable: true // 【优化】改为 true 允许还原
+        });
+    }
 
     // 2. oscpu - 直接删除
     if ('oscpu' in navigator) {
@@ -286,74 +310,51 @@ function block_device_pr() {
 }
 
 // 带缓存的阶梯形的随机canvas噪点反指纹
-function block_canvas_pr() {
-    // 【优化】Hook 正确的对象原型：CanvasRenderingContext2D
+function block_canvas_pr(stringSeed = "default_seed") {
     if (!window.CanvasRenderingContext2D || !originals.getImageData) return;
 
-    const resultCache = new WeakMap();  // 缓存修改结果
+    const resultCache = new WeakMap();
 
     CanvasRenderingContext2D.prototype.getImageData = function(...args) {
-        // 【优化】在 Context2D 上，通过 this.canvas 拿到对应的 Canvas 节点作为缓存的 WeakMap 键值
         const canvasEl = this.canvas;
-
-        // 检查缓存
         if (canvasEl && resultCache.has(canvasEl)) {
             const cached = resultCache.get(canvasEl);
-            // 检查参数是否匹配
             if (cached.args && cached.args.every((v, i) => v === args[i])) {
                 return cached.result;
             }
         }
 
-        // 原始调用
         const imageData = originals.getImageData.apply(this, args);
-
         if (!imageData || !imageData.data) return imageData;
 
-        // 添加噪点
         const data = imageData.data;
         const len = data.length;
         const pixelCount = len / 4;
 
-        // 【性能优化防火墙】指纹追踪脚本通常只读取小尺寸 Canvas（如几十到几百像素）。
-        // 如果网页生成的是超过 250,000 像素（相当于 > 500x500）的大画布（如网页游戏、复杂大图图表），则直接放行，完全避免大图卡顿。
         if (pixelCount > 250000) return imageData;
 
-        let modifyRate, noiseStrength;
-        if (pixelCount <= 4096) {
-            modifyRate = 0.03;
-            noiseStrength = 2;
-        } else if (pixelCount <= 16384) {
-            modifyRate = 0.01;
-            noiseStrength = 1.5;
-        } else {
-            modifyRate = 0.002;
-            noiseStrength = 1;
-        }
+        // 【关键修复】使用基于账户种子的伪随机函数，保证本账户刷新后噪点一致，跨账户噪点不同
+        const myRandom = createRandomGenerator(stringSeed + pixelCount);
 
-        // 【性能优化】小图步长为4（全量检测），中等及大指纹图步长为8（跳跃遍历），大幅度压缩循环内的计算损耗
-        const step = pixelCount > 4096 ? 8 : 4;
+        let modifyRate = pixelCount <= 4096 ? 0.1 : 0.05;
+        const pixelStep = pixelCount > 4096 ? 4 : 2;
 
-        for (let i = 0; i < len; i += step * 4) {
-            if (Math.random() < modifyRate) {
-                const offset = (Math.random() - 0.5) * noiseStrength * 2;
-                data[i] = Math.min(255, Math.max(0, data[i] + offset));
-                data[i+1] = Math.min(255, Math.max(0, data[i+1] + offset));
-                data[i+2] = Math.min(255, Math.max(0, data[i+2] + offset));
+        for (let i = 0; i < len; i += 4 * pixelStep) {
+            if (myRandom() < modifyRate) {
+                // 基于种子生成的相对固定的微小扰动（-1 ~ +1 像素）
+                const offset = (myRandom() - 0.5) * 2;
+                data[i]     = Math.min(255, Math.max(0, data[i] + offset));
+                data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + offset));
+                data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + offset));
             }
         }
 
-        // 存入缓存
         if (canvasEl) {
-            resultCache.set(canvasEl, {
-                args: [...args],
-                result: imageData
-            });
+            resultCache.set(canvasEl, { args: [...args], result: imageData });
         }
 
         return imageData;
     };
-
 }
 
 // 反CSS指纹（轻微）
@@ -462,6 +463,68 @@ function block_css_pr() {
     }
 }
 
+// 反webRTC IP指纹
+function block_webRTC_pr(){
+    try {
+        const originalRTC = originals.RTCPeerConnection?.value || window.RTCPeerConnection;
+        if (!originalRTC) return;
+
+        // 使用 Proxy 伪造构造函数
+        const ProxyRTCPeerConnection = new Proxy(originalRTC, {
+            construct(target, args) {
+                // 创建一个真正的 RTC 实例，确保原型链 (instanceof) 完美合规
+                const instance = Reflect.construct(target, args);
+
+                // 使用 Proxy 劫持这个实例的方法，使其无法获取真实 IP
+                return new Proxy(instance, {
+                    get(obj, prop) {
+                        // 拦截创建 DataChannel（很多指纹库通过它拿本地内网IP）
+                        if (prop === 'createDataChannel') {
+                            return () => ({ close: () => {}, send: () => {}, readyState: 'closed' });
+                        }
+                        // 拦截 Offer 和 Answer
+                        if (prop === 'createOffer' || prop === 'createAnswer') {
+                            return () => Promise.reject(new Error('WebRTC is disabled for privacy.'));
+                        }
+                        // 拦截 ICE 候选（防泄漏核心）
+                        if (prop === 'localDescription' || prop === 'remoteDescription') {
+                            return null;
+                        }
+
+                        // 其他属性如果需要函数绑定 this
+                        const value = obj[prop];
+                        if (typeof value === 'function') {
+                            return value.bind(obj);
+                        }
+                        return value;
+                    }
+                });
+            }
+        });
+
+        // 替换全局对象，必须设为 configurable: true 允许还原！
+        Object.defineProperty(window, 'RTCPeerConnection', {
+            value: ProxyRTCPeerConnection,
+            configurable: true, // 【关键】必须为 true，否则 restore_originals() 会报错失效
+            writable: true,
+            enumerable: false
+        });
+
+        if (window.webkitRTCPeerConnection) {
+            Object.defineProperty(window, 'webkitRTCPeerConnection', {
+                value: ProxyRTCPeerConnection,
+                configurable: true, // 【关键】必须为 true
+                writable: true,
+                enumerable: false
+            });
+        }
+
+    } catch(e) {
+        console.warn('[WebRTC 反指纹] 禁用失败:', e);
+    }
+}
+
+
 // init
 (function (){
     // 监听来自 ISOLATED 世界（扩展桥梁）的消息
@@ -472,12 +535,13 @@ function block_css_pr() {
             return;
         }
         const mode = event.data.mode;
-        console.log("init=", mode);
+        const stringID = event.data.stringID || "id#000000000"; // 从扩展中获取当前账户的隔离ID
         //
         if (mode === 'on') {
             block_device_pr();
-            block_canvas_pr();
+            block_canvas_pr(stringID);
             block_css_pr();
+            block_webRTC_pr();
         }else{
             // 如果用户在 Popup 里关掉了，我们就把 Hook 还原
             restore_originals();
