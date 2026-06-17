@@ -362,17 +362,19 @@ function block_css_pr() {
     // 1. 覆盖媒体查询
     if (!originals.matchMedia) return;
 
+    // 保存绑定后的原始方法
+    const originalMatchMedia = originals.matchMedia.bind(window);
+
     window.matchMedia = function(query) {
-        // 【优化】首先初筛关键字，避免每次都执行复杂的字符串匹配
         if (query.includes('prefers-')) {
             if (query.includes('prefers-contrast')) {
-                return originals.matchMedia('(prefers-contrast: no-preference)');
+                return originalMatchMedia('(prefers-contrast: no-preference)');
             }
             if (query.includes('prefers-reduced-motion')) {
-                return originals.matchMedia('(prefers-reduced-motion: no-preference)');
+                return originalMatchMedia('(prefers-reduced-motion: no-preference)');
             }
         }
-        return originals.matchMedia.call(this, query);
+        return originalMatchMedia(query);
     };
 
     // 2. 字体检测防御
