@@ -64,8 +64,8 @@ function createRandomGenerator(seedString) {
     };
 }
 
-// 硬件特性反指纹
-function block_device_pr() {
+// 硬件特性反指纹（基本）
+function block_device_pr_base(){
     let hour = (new Date()).getHours(); hour = hour===0?24:hour;
 
     // 1. deviceMemory - 直接删除
@@ -116,6 +116,12 @@ function block_device_pr() {
             configurable: true // 【优化】改为 true 允许还原
         });
     }
+
+}
+
+// 硬件特性反指纹（高级）
+function block_device_pr_upper() {
+    let hour = (new Date()).getHours(); hour = hour===0?24:hour;
 
     // 5. mimeTypes：标准化为只包含 PDF（带迭代器）
     if (navigator.mimeTypes) {
@@ -540,9 +546,14 @@ function block_webRTC_pr(){
         const stringID = event.data.stringID || "id#000000000"; // 从扩展中获取当前账户的隔离ID
         //
         if (mode === 'on') {
-            block_device_pr();
+            block_device_pr_base();
+            block_webRTC_pr();
+            //
+            block_device_pr_upper();
             block_canvas_pr(stringID);
             block_css_pr();
+        }else if (mode === 'base') {
+            block_device_pr_base();
             block_webRTC_pr();
         }else{
             // 如果用户在 Popup 里关掉了，我们就把 Hook 还原

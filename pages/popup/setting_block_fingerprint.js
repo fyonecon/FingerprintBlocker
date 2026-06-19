@@ -5,6 +5,7 @@ let block_fingerprint_alert_timer = 0;
 
 // ele
 const modeDefault = document.getElementById('modeDefault');
+const modeBase = document.getElementById('modeBase');
 const modeBlank = document.getElementById('modeBlank');
 const block_fingerprint_alert = document.getElementById('radio-block_fingerprint-alert');
 const radioAlert = document.getElementById('radioAlert');
@@ -15,6 +16,8 @@ function show_block_fingerprint_radio() {
         // 更新UI选中样式
         if (mode === 'on') {
             modeBlank.checked = true;
+        }else if (mode === 'base') {
+            modeBase.checked = true;
         } else { // off or ""
             modeDefault.checked = true;
         }
@@ -42,6 +45,11 @@ function set_block_fingerprint_radio_mode(mode) {
 modeDefault.addEventListener('change', async () => {
     if (modeDefault.checked) {
         set_block_fingerprint_radio_mode('off');
+    }
+});
+modeBase.addEventListener('change', async () => {
+    if (modeBase.checked) {
+        set_block_fingerprint_radio_mode('base');
     }
 });
 modeBlank.addEventListener('change', async () => {

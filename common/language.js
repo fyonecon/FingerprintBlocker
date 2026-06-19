@@ -57,6 +57,13 @@ const language_dict = {
         de: "Nicht blockieren",
         vi: "Không chặn",
     },
+    block_fingerprint_base: {
+        zh: "拦截一些",
+        en: "Block some",
+        jp: "いくつか遮断する（しゃだんする）",
+        de: "Einige blockieren",
+        vi: "Ngăn chặn một số",
+    },
     block_fingerprint_on: {
         zh: "拦截",
         en: "Block",
