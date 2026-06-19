@@ -546,13 +546,15 @@ function block_webRTC_pr(){
         const stringID = event.data.stringID || "id#000000000"; // 从扩展中获取当前账户的隔离ID
         //
         if (mode === 'on') {
+            // 电脑硬件
             block_device_pr_base();
             block_webRTC_pr();
-            //
+            // 浏览器特性
             block_device_pr_upper();
             block_canvas_pr(stringID);
             block_css_pr();
         }else if (mode === 'base') {
+            // 电脑硬件
             block_device_pr_base();
             block_webRTC_pr();
         }else{
