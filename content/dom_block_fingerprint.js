@@ -71,7 +71,7 @@ function block_device_pr_base(){
     // 1. deviceMemory - 直接删除
     if ('deviceMemory' in navigator) {
         Object.defineProperty(navigator, 'deviceMemory', {
-            get: () => undefined,  // 返回 undefined 。4、6、8、12、16、24、32、64、128
+            get: () => false,  // 返回 undefined 。4、6、8、12、16、24、32、64、128
             configurable: true // 【优化】改为 true 允许后续通过 restore_originals 还原
         });
     }
@@ -86,18 +86,9 @@ function block_device_pr_base(){
 
     // 2. oscpu - 直接删除
     if ('oscpu' in navigator) {
-        // 【优化】严格模式下 delete navigator.oscpu 会报错阻塞后续执行，改用 Object.defineProperty 安全覆盖
         Object.defineProperty(navigator, 'oscpu', {
-            get: () => undefined,
-            configurable: true
-        });
-    }
-
-    // 3. webdriver - 设置为 false
-    if ('webdriver' in navigator) {
-        Object.defineProperty(navigator, 'webdriver', {
             get: () => false,
-            configurable: true // 【优化】改为 true 允许还原
+            configurable: true
         });
     }
 
@@ -122,6 +113,14 @@ function block_device_pr_base(){
 // 硬件特性反指纹（高级）
 function block_device_pr_upper() {
     let hour = (new Date()).getHours(); hour = hour===0?24:hour;
+
+    // 3. webdriver - 设置为 false
+    if ('webdriver' in navigator) {
+        Object.defineProperty(navigator, 'webdriver', {
+            get: () => false,
+            configurable: true // 【优化】改为 true 允许还原
+        });
+    }
 
     // 5. mimeTypes：标准化为只包含 PDF（带迭代器）
     if (navigator.mimeTypes) {
