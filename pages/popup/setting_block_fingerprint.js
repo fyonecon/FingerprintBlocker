@@ -30,9 +30,15 @@ function set_block_fingerprint_radio_mode(mode) {
     clearTimeout(block_fingerprint_alert_timer);
     func.set_data('block_fingerprint_mode', mode).then(mode => {
         // alert
+        block_fingerprint_alert.classList.remove('font-gray');
+        block_fingerprint_alert.classList.add('font-blue');
+        //
         block_fingerprint_alert.innerText = func.get_language("radio_alert_yes") + ": " + mode.toUpperCase();
         radioAlert.classList.remove("hide");
         block_fingerprint_alert_timer = setInterval(() => {
+            block_fingerprint_alert.classList.remove('font-blue');
+            block_fingerprint_alert.classList.add('font-gray');
+            //
             block_fingerprint_alert.innerText = "";
             radioAlert.classList.add("hide");
         }, 5000);
