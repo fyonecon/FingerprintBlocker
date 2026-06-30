@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "FingerprintBlocker"
+  },
+  "extensionDescription": {
+    "message": "拦截浏览器指纹。"
+  }
+}

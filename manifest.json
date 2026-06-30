@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "FingerprintBlocker",
-  "version": "1.0.9",
-  "description": "Block browser fingerprint. 拦截浏览器指纹。",
+  "name": "__MSG_extensionName__",
+  "version": "1.0.10",
+  "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "permissions": [
     "storage"
