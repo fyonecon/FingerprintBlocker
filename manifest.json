@@ -3,6 +3,7 @@
   "name": "FingerprintBlocker",
   "version": "1.0.9",
   "description": "Block browser fingerprint. 拦截浏览器指纹。",
+  "default_locale": "en",
   "permissions": [
     "storage"
   ],
