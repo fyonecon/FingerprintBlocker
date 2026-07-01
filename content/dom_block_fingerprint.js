@@ -8,11 +8,19 @@ const originals = {
     getImageData: window.CanvasRenderingContext2D?.prototype.getImageData,
     matchMedia: window.matchMedia,
     getBoundingClientRect: Element.prototype.getBoundingClientRect,
+
     offsetWidth: Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')?.get,
     offsetHeight: Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')?.get,
+
     fontCheck: window.FontFaceSet?.prototype.check,
+
     RTCPeerConnection: Object.getOwnPropertyDescriptor(window, 'RTCPeerConnection'),
     webkitRTCPeerConnection: Object.getOwnPropertyDescriptor(window, 'webkitRTCPeerConnection'),
+
+    getTimezoneOffset: Date.prototype.getTimezoneOffset,
+    IntlDateTimeFormat: window.Intl.DateTimeFormat,
+    IntlResolvedOptions: Intl.DateTimeFormat.prototype.resolvedOptions,
+
 };
 
 // 恢复原厂设置的函数
@@ -32,18 +40,29 @@ function restore_originals() {
     if (originals.getBoundingClientRect) {
         Element.prototype.getBoundingClientRect = originals.getBoundingClientRect;
     }
+
     if (originals.offsetWidth && originals.offsetHeight) {
         Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { get: originals.offsetWidth, configurable: true });
         Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { get: originals.offsetHeight, configurable: true });
     }
+
     if (originals.fontCheck && window.FontFaceSet) {
         FontFaceSet.prototype.check = originals.fontCheck;
     }
+
     if (originals.RTCPeerConnection) {
         Object.defineProperty(window, 'RTCPeerConnection', originals.RTCPeerConnection);
     }
     if (originals.webkitRTCPeerConnection) {
         Object.defineProperty(window, 'webkitRTCPeerConnection', originals.webkitRTCPeerConnection);
+    }
+
+    // 还原 Intl.DateTimeFormat
+    if (originals.IntlDateTimeFormat) {
+        window.Intl.DateTimeFormat = originals.IntlDateTimeFormat;
+    }
+    if (originals.IntlResolvedOptions) {
+        Intl.DateTimeFormat.prototype.resolvedOptions = originals.IntlResolvedOptions;
     }
 
 }
@@ -92,7 +111,7 @@ function block_device_pr_base(){
         });
     }
 
-    // 4. language 和 languages - 保留前两位
+    // 4.1 language 和 languages - 保留前两位
     const originalLanguages = navigator.languages;
     if (originalLanguages && originalLanguages.length > 0) {
         const trimmedLanguages = originalLanguages.slice(0, 2);
@@ -531,6 +550,74 @@ function block_webRTC_pr(){
     }
 }
 
+// 时区伪装 - 只改标识，不改时间数值（偏移值）
+function block_timezone_pr() {
+    // 通过 Intl.DateTimeFormat 获取当前时区名称
+    let originalTimeZone = '';
+    try {
+        originalTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    } catch(e) {
+        return; // 如果获取失败，不做任何修改
+    }
+
+    // 定义时区映射：原始时区 -> 伪装时区
+    const timeZoneMap = {
+        'Asia/Shanghai': 'Asia/Singapore',
+        'Europe/Moscow': 'Europe/Istanbul'
+    };
+
+    // 检查当前时区是否在映射表中
+    const fakeTimeZone = timeZoneMap[originalTimeZone];
+    if (!fakeTimeZone) {
+        return; // 不在映射表中，不做修改
+    }
+
+    // 保存原始 DateTimeFormat
+    if (!originals.IntlDateTimeFormat) {
+        originals.IntlDateTimeFormat = window.Intl.DateTimeFormat;
+    }
+
+    // 保存原始 resolvedOptions
+    if (!originals.IntlResolvedOptions) {
+        originals.IntlResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
+    }
+
+    // 代理 Intl.DateTimeFormat
+    const OriginalDateTimeFormat = originals.IntlDateTimeFormat;
+    const OriginalResolvedOptions = originals.IntlResolvedOptions;
+
+    // 创建代理构造函数
+    function ProxyDateTimeFormat(locales, options) {
+        // 处理 options 中的 timeZone 参数
+        let modifiedOptions = options;
+        if (options && options.timeZone === originalTimeZone) {
+            modifiedOptions = { ...options, timeZone: fakeTimeZone };
+        }
+        // 使用原始构造函数创建实例
+        const instance = new OriginalDateTimeFormat(locales, modifiedOptions);
+
+        // 代理 resolvedOptions 方法
+        instance.resolvedOptions = function() {
+            const result = OriginalResolvedOptions.call(this);
+            // 如果时区匹配，替换为伪装时区
+            if (result.timeZone === originalTimeZone) {
+                result.timeZone = fakeTimeZone;
+            }
+            return result;
+        };
+
+        return instance;
+    }
+
+    // 复制静态属性和原型
+    ProxyDateTimeFormat.prototype = OriginalDateTimeFormat.prototype;
+    ProxyDateTimeFormat.supportedLocalesOf = OriginalDateTimeFormat.supportedLocalesOf;
+    ProxyDateTimeFormat.prototype.constructor = ProxyDateTimeFormat;
+
+    // 替换全局 Intl.DateTimeFormat
+    window.Intl.DateTimeFormat = ProxyDateTimeFormat;
+}
+
 
 // init
 (function (){
@@ -544,18 +631,20 @@ function block_webRTC_pr(){
         const mode = event.data.mode;
         const stringID = event.data.stringID || "id#000000000"; // 从扩展中获取当前账户的隔离ID
         //
-        if (mode === 'on') {
+        if (mode === 'on') { // 全部
             // 电脑硬件
             block_device_pr_base();
             block_webRTC_pr();
+            block_timezone_pr();
             // 浏览器特性
             block_device_pr_upper();
             block_canvas_pr(stringID);
             block_css_pr();
-        }else if (mode === 'base') {
+        }else if (mode === 'base') { // 基本
             // 电脑硬件
             block_device_pr_base();
             block_webRTC_pr();
+            block_timezone_pr();
         }else{ // off
             // 如果用户在 Popup 里关掉了，我们就把 Hook 还原
             restore_originals();

@@ -38,7 +38,7 @@ Store the information you set locally (specifically: the new tab URL. ).
 ====================================
 
 
-本次版本给本浏览器扩展增加了“浏览器多语言 _locales 识别”
+本次版本给本浏览器扩展增加了“时区拦截”，“timezone”如果是“Shanghai”，这会被改成同UTC时区的“Singapore”，其它情况的时区不会被改变。这个特性可用 https://ippure.com/fingerprint 查看“timezone”字段得到验证。
 
 ------
 
@@ -57,7 +57,7 @@ Store the information you set locally (specifically: the new tab URL. ).
 
 ---
 
-This version adds "browser multilanguage _locales identification" to this browser extension.
+This version feat: add timezone interception — Asia/Shanghai → Asia/Singapore (UTC+8 alias). Other timezones are not modified. Test via timezone field at https://ippure.com/fingerprint.
 
 ------
 
