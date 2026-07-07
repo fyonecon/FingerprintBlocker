@@ -12,13 +12,13 @@
 
 ---
 
-### 浏览器扩展商店安装扩展：
+### 安装扩展：
 
+Edge商店安装：https://microsoftedge.microsoft.com/addons/detail/fingerprintblocker/klcdijjehddgeehaaijnlkdnhoplmfon
 
-Edge扩展：https://microsoftedge.microsoft.com/addons/detail/fingerprintblocker/klcdijjehddgeehaaijnlkdnhoplmfon 
+Firefox商店安装：https://addons.mozilla.org/zh-CN/firefox/addon/fingerprintblocker/ 
 
-
-Firefox扩展：https://addons.mozilla.org/zh-CN/firefox/addon/fingerprintblocker/ 
+Chrome离线安装（需手动解压后导入）：https://github.com/fyonecon/FingerprintBlocker/archive/refs/heads/main.zip
 
 ---
 
