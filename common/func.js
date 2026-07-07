@@ -19,13 +19,28 @@ const func = {
         key = config.app_class + key;
         return new Promise((resolve)=>{
             if (typeof chrome !== 'undefined'){
-                chrome.storage.local.get([key], (res) => {
-                    if (res[key] !== undefined) {
-                        resolve(res[key]);
-                    } else {
-                        resolve("");
-                    }
-                });
+                const storage_type = config.storage_type;
+                if (storage_type === "local"){
+                    // 本地数据
+                    chrome.storage.local.get([key], (res) => {
+                        if (res[key] !== undefined) {
+                            resolve(res[key]);
+                        } else {
+                            resolve("");
+                        }
+                    });
+                }else if(storage_type === "sync"){
+                    // 与用户浏览器同步的云数据
+                    chrome.storage.sync.get([key], (res) => {
+                        if (res[key] !== undefined) {
+                            resolve(res[key]);
+                        } else {
+                            resolve("");
+                        }
+                    });
+                }else{
+                    console.error("未指定正确的值：", storage_type);
+                }
             }else{
                 resolve("");
             }
@@ -35,9 +50,28 @@ const func = {
         key = config.app_class + key;
         return new Promise((resolve)=>{
             if (typeof chrome !== 'undefined'){
-                chrome.storage.local.set({ [key]: value }, () => {
-                    resolve(value);
-                });
+                const storage_type = config.storage_type;
+                if (storage_type === "local"){
+                    // 本地数据
+                    chrome.storage.local.set({ [key]: value }, () => {
+                        if (chrome.runtime.lastError) {
+                            resolve("");
+                        } else {
+                            resolve(value);
+                        }
+                    });
+                }else if(storage_type === "sync"){
+                    // 与用户浏览器同步的云数据
+                    chrome.storage.sync.set({ [key]: value }, () => {
+                        if (chrome.runtime.lastError) {
+                            resolve("");
+                        } else {
+                            resolve(value);
+                        }
+                    });
+                }else{
+                    console.error("未指定正确的值：", storage_type);
+                }
             }else{
                 resolve("");
             }
@@ -47,9 +81,20 @@ const func = {
         key = config.app_class + key;
         return new Promise((resolve)=>{
             if (typeof chrome !== 'undefined'){
-                chrome.storage.local.remove([key], () => {
-                    resolve(true);
-                });
+                const storage_type = config.storage_type;
+                if (storage_type === "local"){
+                    // 本地数据
+                    chrome.storage.local.remove(key, () => {
+                        resolve(true);
+                    });
+                }else if(storage_type === "sync"){
+                    // 与用户浏览器同步的云数据
+                    chrome.storage.sync.remove(key, () => {
+                        resolve(true);
+                    });
+                }else{
+                    console.error("未指定正确的值：", storage_type);
+                }
             }else{
                 resolve(false);
             }
@@ -58,9 +103,20 @@ const func = {
     clear_data: function() { // 清空数据
         return new Promise((resolve)=>{
             if (typeof chrome !== 'undefined'){
-                chrome.storage.local.clear(() => {
-                    resolve(true);
-                });
+                const storage_type = config.storage_type;
+                if (storage_type === "local"){
+                    // 本地数据
+                    chrome.storage.local.clear(() => {
+                        resolve(true);
+                    });
+                }else if(storage_type === "sync"){
+                    // 与用户浏览器同步的云数据
+                    chrome.storage.sync.clear(() => {
+                        resolve(true);
+                    });
+                }else{
+                    console.error("未指定正确的值：", storage_type);
+                }
             }else{
                 resolve(false);
             }
@@ -510,12 +566,181 @@ const func = {
 
         return agent_state || js_runtime_state;
     },
-    get_runtime_info: function() {
+    get_runtime_info: function() { // 设备及浏览器类型
         let that = this;
         //
         return {
             "sys_platform": that.is_win() ? "Win" : (that.is_mac() ? "Mac" : that.is_android()?"Android":(that.is_ios()?"iOS/iPad":(that.is_linux()?"Linux":("Others")))),
             "browser_name": that.is_firefox() ? "Firefox" : (that.is_edge() ? "Edge" : (that.is_chrome() ? "Chrome" : (that.is_brave() ? "Brave" : (that.is_samsung()?"Samsung":(that.is_safari()?"Safari":"Others"))))),
         };
+    },
+    support_min_js: function (){ // 最低js支持到ES202x
+        // 大致最低支持范围:
+        // ES2024，Chrome124+，Firefox128+，iOS17.4+，Android16+，MacOS14+，Win10 2024 Update+，nodeJS22+，Bun1.1+
+        let that = this;
+        const support_es2024 = function (){
+            try { // es2024
+                return !!(
+                    // 1. Object.groupBy (最常用的新特性)
+                    Object.groupBy &&
+                    // 2. Promise.withResolvers (改变 Promise 写法的特性)
+                    Promise.withResolvers &&
+                    // 3. ArrayBuffer.prototype.resize (内存管理增强)
+                    ArrayBuffer.prototype.resize &&
+                    // 4. 正则表达式 v 标记 (Unicode 增强)
+                    new RegExp('', 'v') &&
+                    // 5. Atomics.waitAsync (多线程同步增强)
+                    typeof Atomics !== 'undefined' && Atomics.waitAsync
+                );
+            } catch (e) {
+                return false;
+            }
+        };
+        //
+        if (!support_es2024()){
+            console.error("support_min_js=", ["es2024", support_es2024()]);
+        }
+        //
+        return support_es2024();
+    },
+    ping: function (url) { // Ping网址是否可访问
+        let that = this;
+        //
+        /**
+         * GET
+         * @param {string} api_url 接口
+         * @param {object} body_dict 数据data字典
+         * @param {number} timeout_s 超时
+         * @returns {Promise<object>} 返回固定格式
+         */
+        const FetchGET = function (api_url, body_dict = {}, timeout_s = 10) {
+            let state = 0;
+            let msg = "";
+            let content = {};
+
+            // 构建查询参数
+            const params = new URLSearchParams(body_dict);
+            if (params.toString()) {
+                api_url = api_url + "?" + params.toString();
+            }
+
+            return new Promise(async (resolve) => {
+                // 创建 AbortController 用于超时控制
+                const controller = new AbortController();
+
+                // 设置超时（秒转换为毫秒）
+                const timeoutMs = (timeout_s <= 0 ? 10 : timeout_s) * 1000;
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                }, timeoutMs);
+
+                try {
+                    const response = await fetch(api_url, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        mode: 'no-cors', // cors, no-cors, same-origin。GET请使用no-cors，POST请使用cors。
+                        cache: 'no-cache', // default, no-cache, reload, force-cache, only-if-cached
+                        signal: controller.signal, // 关键：绑定中断信号
+                    });
+
+                    // 清除超时定时器
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        console.warn("response.ok=", response, response.ok);
+
+                        state = 0;
+                        msg = "GET Status Error.";
+                        content = {
+                            "api_url": api_url,
+                            "status": response.status,
+                            "statusText": response.statusText,
+                            "error": "GET接口访问成功，但接口返回状态错误"
+                        };
+
+                        resolve({
+                            state: state,
+                            msg: msg,
+                            content: content,
+                        });
+                    }else{
+                        // 根据 Content-Type 解析响应
+                        const contentType = response.headers.get('content-type');
+                        let result;
+
+                        if (contentType && contentType.includes('application/json')) {
+                            result = await response.json();
+                        } else if (contentType && contentType.includes('text/')) {
+                            result = await response.text();
+                        } else if (contentType && contentType.includes('form-data')) {
+                            result = await response.formData();
+                        } else if (contentType && contentType.includes('blob')) {
+                            result = await response.blob();
+                        } else {
+                            result = await response.text();
+                        }
+
+                        // 成功返回数据
+                        resolve(result);
+                    }
+                } catch (error) {
+                    // 清除超时定时器
+                    clearTimeout(timeoutId);
+
+                    // 判断是否是超时错误
+                    if (error.name === 'AbortError') {
+                        state = 404;
+                        msg = "GET Timeout Error.";
+                        content = {
+                            "api_url": api_url,
+                            "error": `请求超时（${timeout_s}秒）`,
+                            "error_type": "AbortError"
+                        };
+                    } else {
+                        // 其他错误
+                        state = 404;
+                        msg = "GET Broken.";
+                        content = {
+                            "api_url": api_url,
+                            "error": error.message || error,
+                            "error_type": error.name || "NetworkError"
+                        };
+                    }
+
+                    resolve({
+                        state: state,
+                        msg: msg,
+                        content: content,
+                    });
+                }
+            });
+        };
+        //
+        return new Promise((resolve, reject) => {
+            FetchGET(url, {}, 5).then(result => {
+                let state = 0;
+                let msg  = "";
+                if (result.state !== 404) {
+                    state = 1;
+                    msg  = "接口访问成功，但status状态可能是200、30X。";
+                } else {
+                    state = 404;
+                    msg  = "超时或者接口无效。";
+                }
+                resolve({
+                    state: state,
+                    msg: msg,
+                    result: result,
+                });
+            }).catch(err=>{
+                resolve({
+                    state: 404,
+                    msg: "",
+                    result: {},
+                });
+            });
+        });
     },
 };

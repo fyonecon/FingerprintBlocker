@@ -35,6 +35,20 @@ const language_dict = {
         de: "FingerprintBlocker",
         vi: "FingerprintBlocker",
     },
+    help: {
+        zh: "帮助",
+        en: "Help",
+        jp: "ヘルプ",
+        de: "Hilfe",
+        vi: "Trợ giúp",
+    },
+    about: {
+        zh: "关于",
+        en: "About",
+        jp: "当ソフトについて",
+        de: "Über",
+        vi: "Giới thiệu",
+    },
     //
     block_fingerprint: {
         zh: "拦截浏览器指纹",

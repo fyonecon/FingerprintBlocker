@@ -1,0 +1,25 @@
+.app-div{
+    padding: 10px 10px;
+}
+table{
+    width: 100%;
+    border: 1px solid rgba(160,160,160, 1);
+    text-align: center;
+    border-collapse: collapse;
+}
+th{
+    font-weight: bold;
+    border: 1px solid rgba(160,160,160, 1);
+    padding: 10px 10px;
+}
+td {
+    font-weight: normal;
+    border: 1px solid rgba(160,160,160, 1);
+    padding: 10px 10px;
+    opacity: 0.8;
+}
+
+.app-div > h2{
+    padding: 10px 0;
+    margin-bottom: 10px;
+}

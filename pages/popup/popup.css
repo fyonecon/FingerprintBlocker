@@ -91,3 +91,11 @@
     padding: 10px 0;
     min-width: 220px;
 }
+
+.more-div{
+    padding: 5px 0;
+    text-align: center;
+}
+.more-div > a{
+    padding: 2px 10px;
+}
