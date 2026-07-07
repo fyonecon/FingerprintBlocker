@@ -38,11 +38,12 @@ Store the information you set locally (specifically: the new tab URL. ).
 ====================================
 
 本次版本：
-新增了“Help”页面（在popup页面的最下面）。
+- 新增了“Help”页面（在popup页面的最下面）；
+- 增加了“时区拦截”，“timezone”如果是“Shanghai”，这会被改成同UTC时区的“Singapore”，其它情况的时区不会被改变。这个特性可用 https://ippure.com/fingerprint 查看“timezone”字段得到验证。
 
 ------
 
-本次版本给本浏览器扩展增加了“时区拦截”，“timezone”如果是“Shanghai”，这会被改成同UTC时区的“Singapore”，其它情况的时区不会被改变。这个特性可用 https://ippure.com/fingerprint 查看“timezone”字段得到验证。
+本次版本给本浏览器扩展
 
 ------
 
@@ -62,7 +63,8 @@ Store the information you set locally (specifically: the new tab URL. ).
 ---
 
 This release version:
-- Added a "Help" page (positioned at the bottom of the popup page).
+- Added a "Help" page (positioned at the bottom of the popup page);
+- Added timezone interception — Asia/Shanghai → Asia/Singapore (UTC+8 alias). Other timezones are not modified. Test via timezone field at https://ippure.com/fingerprint .
 
 ------
 
