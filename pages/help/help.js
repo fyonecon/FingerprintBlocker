@@ -12,7 +12,7 @@ function page_start(e){
     //
     table_td_version.innerText = config.app_name + " - " + config.app_version;
     table_td_platform.innerText = func.get_runtime_info().sys_platform + " - " + func.get_runtime_info().browser_name;
-    table_td_es2024.innerText = func.support_min_js()?"Yes":"No";
+    table_td_es2024.innerText = func.support_min_js()?"✅":"❌";
 }
 
 // 页面加载完成后或页面可见时
