@@ -8,7 +8,9 @@
 
 不收集任何隐私！
 
-项目开源：https://github.com/fyonecon/FingerprintBlocker
+项目原地址：https://github.com/fyonecon/FingerprintBlocker
+
+保护浏览器自定义浏览器新标签页扩展：https://github.com/fyonecon/tabPureHome
 
 ---
 
